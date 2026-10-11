@@ -1,0 +1,87 @@
+/* Celebria – тъмна слива + розово злато върху топъл светъл фон */
+:root {
+    --celebria-plum: #4a2545;
+    --celebria-plum-dark: #351a31;
+    --celebria-rose: #c08a7c;
+    --celebria-cream: #faf6f3;
+    --bs-body-font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --bs-link-color: #4a2545;
+    --bs-link-color-rgb: 74, 37, 69;
+    --bs-link-hover-color: #c08a7c;
+}
+
+html { font-size: 15px; }
+body { background: var(--celebria-cream); }
+
+.celebria-nav { background: linear-gradient(90deg, var(--celebria-plum-dark), var(--celebria-plum)); }
+.celebria-brand {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+}
+.celebria-tagline {
+    font-family: "Inter", sans-serif;
+    font-size: .75rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--celebria-rose);
+    margin-left: .5rem;
+}
+
+.page-title {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-weight: 700;
+    color: var(--celebria-plum);
+    font-size: 2.2rem;
+}
+
+.btn-celebria {
+    --bs-btn-bg: var(--celebria-plum);
+    --bs-btn-border-color: var(--celebria-plum);
+    --bs-btn-color: #fff;
+    --bs-btn-hover-bg: var(--celebria-plum-dark);
+    --bs-btn-hover-border-color: var(--celebria-plum-dark);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-active-bg: var(--celebria-plum-dark);
+    --bs-btn-active-color: #fff;
+}
+
+.card { border: 1px solid #ece3de; border-radius: .75rem; }
+.filter-card .form-label { font-size: .85rem; font-weight: 500; color: #6b5b66; }
+.form-control:focus, .form-select:focus {
+    border-color: var(--celebria-rose);
+    box-shadow: 0 0 0 .2rem rgba(192, 138, 124, .25);
+}
+
+.type-chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+.chip {
+    padding: .3rem .85rem;
+    border-radius: 999px;
+    border: 1px solid #e3d5ce;
+    background: #fff;
+    color: #4a2545;
+    text-decoration: none;
+    font-size: .9rem;
+}
+.chip:hover { border-color: var(--celebria-rose); }
+.chip.active { background: var(--celebria-plum); border-color: var(--celebria-plum); color: #fff; }
+
+.events-table thead th {
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #8a7884;
+    background: #fbf8f6;
+    white-space: nowrap;
+}
+.events-table a { text-decoration: none; }
+
+.details-list dt { font-weight: 500; color: #8a7884; }
+.text-pre-line { white-space: pre-line; }
+.empty-state { border-style: dashed; padding: 2.5rem; }
+
+@media (max-width: 767.98px) {
+    .events-table { font-size: .9rem; }
+    .page-title { font-size: 1.8rem; }
+}

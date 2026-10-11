@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] – Celebria</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600&display=swap" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-dark celebria-nav mb-4">
+            <div class="container">
+                <a class="navbar-brand celebria-brand" asp-controller="Events" asp-action="Index">
+                    Celebria <span class="celebria-tagline d-none d-md-inline">Celebrate Moments</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+                        aria-controls="nav" aria-expanded="false" aria-label="Меню">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="nav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item"><a class="nav-link" asp-controller="Events" asp-action="Index">Събития</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Events" asp-action="Create">+ Ново събитие</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-4">
+            @if (TempData["Message"] is string message)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @message
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Затвори"></button>
+                </div>
+            }
+            @RenderBody()
+        </main>
+    </div>
+    <footer class="border-top text-muted small py-3 text-center">
+        Celebria &middot; ST2 2026 &middot; ASP.NET Core MVC &middot; SQLite
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

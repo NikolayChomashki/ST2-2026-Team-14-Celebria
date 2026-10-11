@@ -1,0 +1,44 @@
+@model Event
+@inject EventTypeCatalog Types
+@{
+    ViewData["Title"] = Model.Title;
+    var type = Types.Find(Model.EventType);
+}
+
+<a asp-action="Index" class="small text-decoration-none">&larr; Към всички събития</a>
+<div class="d-flex flex-wrap align-items-center gap-3 mt-2 mb-3">
+    <h1 class="page-title mb-0">@Model.Title</h1>
+    <span class="badge @Model.Status.BadgeClass() fs-6">@Model.Status.DisplayName()</span>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <dl class="row mb-0 details-list">
+            <dt class="col-sm-3">Тип</dt>
+            <dd class="col-sm-9">@(type?.Icon) @Types.NameOf(Model.EventType)</dd>
+
+            <dt class="col-sm-3">Дата</dt>
+            <dd class="col-sm-9">@(Model.Date?.ToString("dd.MM.yyyy"))</dd>
+
+            <dt class="col-sm-3">Клиент</dt>
+            <dd class="col-sm-9">@Model.ClientName</dd>
+
+            <dt class="col-sm-3">Брой гости</dt>
+            <dd class="col-sm-9">@Model.GuestCount</dd>
+
+            <dt class="col-sm-3">Място</dt>
+            <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.Location) ? "—" : Model.Location)</dd>
+
+            <dt class="col-sm-3">Бюджет</dt>
+            <dd class="col-sm-9">@(Model.BudgetEur is { } b ? $"{b:N0} €" : "—")</dd>
+
+            <dt class="col-sm-3">Бележки</dt>
+            <dd class="col-sm-9 text-pre-line">@(string.IsNullOrWhiteSpace(Model.Notes) ? "—" : Model.Notes)</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-3 d-flex gap-2">
+    <a asp-action="Index" asp-route-type="@Model.EventType" class="btn btn-outline-secondary">Още събития от този тип</a>
+    <a asp-action="Create" class="btn btn-celebria">+ Ново събитие</a>
+</div>

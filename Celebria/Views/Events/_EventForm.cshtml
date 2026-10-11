@@ -1,0 +1,58 @@
+@model Event
+@inject EventTypeCatalog Types
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+<div class="row g-3">
+    <div class="col-md-8">
+        <label asp-for="Title" class="form-label"></label>
+        <input asp-for="Title" class="form-control" placeholder="Сватба на Мария и Иван" autocomplete="off" />
+        <span asp-validation-for="Title" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="EventType" class="form-label"></label>
+        @* Опциите идват от Singleton-а EventTypeCatalog, инжектиран с @inject. *@
+        <select asp-for="EventType" asp-items="@(new SelectList(Types.All, "Code", "Name"))" class="form-select">
+            <option value="">– изберете –</option>
+        </select>
+        <span asp-validation-for="EventType" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="Date" class="form-label"></label>
+        <input asp-for="Date" class="form-control" />
+        <span asp-validation-for="Date" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="GuestCount" class="form-label"></label>
+        <input asp-for="GuestCount" class="form-control" min="1" max="5000" />
+        <span asp-validation-for="GuestCount" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="BudgetEur" class="form-label"></label>
+        <input asp-for="BudgetEur" class="form-control" min="0" step="100" placeholder="по избор" />
+        <span asp-validation-for="BudgetEur" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="ClientName" class="form-label"></label>
+        <input asp-for="ClientName" class="form-control" placeholder="Име на клиента или фирмата" />
+        <span asp-validation-for="ClientName" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Location" class="form-label"></label>
+        <input asp-for="Location" class="form-control" placeholder="Хотел, ресторант, град" />
+        <span asp-validation-for="Location" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="Status" class="form-label"></label>
+        <select asp-for="Status" asp-items="Html.GetEnumSelectList<EventStatus>()" class="form-select"></select>
+        <span asp-validation-for="Status" class="text-danger small"></span>
+    </div>
+    <div class="col-12">
+        <label asp-for="Notes" class="form-label"></label>
+        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Специални изисквания, меню, декорация..."></textarea>
+        <span asp-validation-for="Notes" class="text-danger small"></span>
+    </div>
+</div>
