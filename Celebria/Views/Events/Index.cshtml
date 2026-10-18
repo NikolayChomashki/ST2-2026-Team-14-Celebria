@@ -5,15 +5,26 @@
     var f = Model.Filter;
 }
 
-<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+<section class="hero-panel mb-4 mb-lg-5">
+    <div class="eyebrow mb-2">ДОБРЕ ДОШЛИ В CELEBRIA</div>
+    <h1>Всеки специален момент<br /><em>заслужава идеален план.</em></h1>
+    <p class="hero-description">Следете всяко събитие – от първото запитване до финалния детайл.</p>
+    <div class="d-flex flex-wrap gap-2 mt-4">
+        <a class="btn btn-primary px-4" asp-action="Create">+ Създай събитие</a>
+    </div>
+    <div class="hero-decor hero-decor-1"></div><div class="hero-decor hero-decor-2"></div>
+</section>
+
+<div class="page-heading d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
     <div>
-        <h1 class="page-title mb-0">Събития</h1>
+        <div class="eyebrow">EVENT MANAGER</div>
+        <h1 class="mb-1">Събития</h1>
         <p class="text-muted mb-0">
             Показани <strong>@Model.Events.Count</strong> от @Model.TotalCount
             @if (!f.IsEmpty) { <span>(с активен филтър)</span> }
         </p>
     </div>
-    <a asp-action="Create" class="btn btn-celebria">+ Ново събитие</a>
+    <a asp-action="Create" class="btn btn-primary">+ Добави събитие</a>
 </div>
 
 @* Бързи филтри по тип – линкове, които сменят само параметъра type в адреса. *@
@@ -21,16 +32,16 @@
     <a asp-action="Index" class="chip @(string.IsNullOrEmpty(f.Type) ? "active" : "")">Всички</a>
     @foreach (var t in Types.All)
     {
-        <a asp-action="Index" asp-route-type="@t.Code" class="chip @(string.Equals(f.Type, t.Code, StringComparison.OrdinalIgnoreCase) ? "active" : "")">@t.Icon @t.Name</a>
+        <a asp-action="Index" asp-route-type="@t.Code" class="chip @(string.Equals(f.Type, t.Code, StringComparison.OrdinalIgnoreCase) ? "active" : "")">@t.Name</a>
     }
 </div>
 
-@* Филтърът е GET форма: критериите остават в адреса и страницата може да се сподели/презареди. *@
-<form method="get" asp-action="Index" class="card card-body shadow-sm mb-4 filter-card">
-    <div class="row g-3 align-items-end">
+<div class="content-card p-3 p-md-4">
+    @* Филтърът е GET форма: критериите остават в адреса и страницата може да се сподели/презареди. *@
+    <form method="get" asp-action="Index" class="row g-3 mb-4 align-items-end">
         <div class="col-lg-4 col-md-6">
             <label for="search" class="form-label">Търсене</label>
-            <input id="search" name="search" value="@f.Search" class="form-control" placeholder="Наименование, клиент или място" />
+            <input id="search" name="search" type="search" value="@f.Search" class="form-control" placeholder="Наименование, клиент или място" />
         </div>
         <div class="col-lg-2 col-md-6">
             <label for="type" class="form-label">Тип</label>
@@ -61,33 +72,35 @@
             <input id="to" name="to" type="date" value="@(f.To?.ToString("yyyy-MM-dd"))" class="form-control" />
         </div>
         <div class="col-12 d-flex gap-2">
-            <button type="submit" class="btn btn-celebria">Филтрирай</button>
-            <a asp-action="Index" class="btn btn-outline-secondary">Изчисти</a>
+            <button type="submit" class="btn btn-primary px-4">Филтрирай</button>
+            <a asp-action="Index" class="btn btn-outline-secondary" title="Изчисти филтрите">Изчисти</a>
         </div>
-    </div>
-</form>
+    </form>
 
-@if (Model.Events.Count == 0)
-{
-    <div class="empty-state card card-body text-center text-muted">
-        <p class="mb-2 fs-5">Няма събития, които да отговарят на филтъра.</p>
-        <p class="mb-0"><a asp-action="Index">Покажи всички</a> или <a asp-action="Create">добави ново събитие</a>.</p>
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="h6 m-0">Списък със събития</h2>
+        <span class="small text-muted">Намерени: <strong>@Model.Events.Count</strong></span>
     </div>
-}
-else
-{
-    <div class="card shadow-sm">
+
+    @if (Model.Events.Count == 0)
+    {
+        <div class="empty-state content-card text-center text-muted">
+            <p class="mb-2 fs-5">Няма събития, които да отговарят на филтъра.</p>
+            <p class="mb-0"><a class="muted-link" asp-action="Index">Покажи всички</a> или <a class="muted-link" asp-action="Create">добави ново събитие</a>.</p>
+        </div>
+    }
+    else
+    {
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 events-table">
+            <table class="table align-middle event-table mb-0">
                 <thead>
                     <tr>
-                        <th>Дата</th>
                         <th>Събитие</th>
-                        <th>Тип</th>
+                        <th>Дата</th>
                         <th>Клиент</th>
                         <th class="text-end">Гости</th>
-                        <th class="d-none d-lg-table-cell">Място</th>
                         <th>Статус</th>
+                        <th class="text-end">Действия</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -95,18 +108,24 @@ else
                     {
                         var type = Types.Find(ev.EventType);
                         var isPast = ev.Date < DateTime.Today;
-                        <tr class="@(isPast ? "text-muted" : "")">
+                        <tr class="@(isPast ? "event-row-past" : "")">
+                            <td>
+                                <a asp-action="Details" asp-route-id="@ev.Id" class="event-link">@ev.Title</a>
+                                <div class="small text-muted">@Types.NameOf(ev.EventType)@(string.IsNullOrWhiteSpace(ev.Location) ? "" : " · " + ev.Location)</div>
+                            </td>
                             <td class="text-nowrap">@(ev.Date?.ToString("dd.MM.yyyy"))</td>
-                            <td><a asp-action="Details" asp-route-id="@ev.Id" class="fw-semibold">@ev.Title</a></td>
-                            <td class="text-nowrap">@(type?.Icon) @Types.NameOf(ev.EventType)</td>
                             <td>@ev.ClientName</td>
                             <td class="text-end">@ev.GuestCount</td>
-                            <td class="d-none d-lg-table-cell">@ev.Location</td>
-                            <td><span class="badge @ev.Status.BadgeClass()">@ev.Status.DisplayName()</span></td>
+                            <td><span class="status-chip @ev.Status.ChipClass()">@ev.Status.DisplayName()</span></td>
+                            <td class="text-end text-nowrap">
+                                <a asp-action="Details" asp-route-id="@ev.Id" class="btn btn-outline-secondary btn-sm">Виж</a>
+                                <a asp-action="Edit" asp-route-id="@ev.Id" class="btn btn-outline-secondary btn-sm">Редакция</a>
+                                <a asp-action="Delete" asp-route-id="@ev.Id" class="btn btn-outline-danger btn-sm">Изтрий</a>
+                            </td>
                         </tr>
                     }
                 </tbody>
             </table>
         </div>
-    </div>
-}
+    }
+</div>

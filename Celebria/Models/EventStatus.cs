@@ -27,4 +27,13 @@ public static class EventStatusExtensions
         EventStatus.Cancelled => "text-bg-danger",
         _ => "text-bg-secondary"
     };
+
+    /// <summary>CSS клас за цветния „chip“ на статуса (виж site.css).</summary>
+    public static string ChipClass(this EventStatus status) => status switch
+    {
+        EventStatus.Confirmed => "status-confirmed",
+        EventStatus.Completed => "status-done",
+        EventStatus.Cancelled => "status-cancelled",
+        _ => "status-planned"
+    };
 }

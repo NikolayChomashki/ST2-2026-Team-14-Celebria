@@ -1,87 +1,10 @@
-/* Celebria – тъмна слива + розово злато върху топъл светъл фон */
-:root {
-    --celebria-plum: #4a2545;
-    --celebria-plum-dark: #351a31;
-    --celebria-rose: #c08a7c;
-    --celebria-cream: #faf6f3;
-    --bs-body-font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-    --bs-link-color: #4a2545;
-    --bs-link-color-rgb: 74, 37, 69;
-    --bs-link-hover-color: #c08a7c;
-}
+:root{--rose:#a86d81;--rose-dark:#865367;--rose-pale:#f7eef1;--ink:#37313a;--muted:#817981;--border:#eadfe3;--paper:#fff;--base:#fbf9f8}
+html{min-height:100%;font-size:16px}body{min-height:100vh;display:flex;flex-direction:column;background:var(--base);color:var(--ink);font-family:'Segoe UI',Arial,sans-serif}.page-content{flex:1}.site-header{background:rgba(255,255,255,.94);border-bottom:1px solid #efe5e9}.navbar-brand{color:var(--ink)!important}.brand-mark{width:40px;height:40px;border-radius:14px;background:var(--rose);display:inline-flex;align-items:center;justify-content:center;color:white;font-family:Georgia,serif;font-size:26px}.brand-stack{display:flex;flex-direction:column;line-height:1}.brand-stack strong{font-family:Georgia,serif;font-size:27px;font-weight:500;letter-spacing:-.8px}.brand-stack small{font-size:8px;letter-spacing:2px;color:var(--rose);margin-top:5px}.navbar .nav-link{color:var(--ink)}.navbar .nav-link:hover,.event-link,.muted-link{color:var(--rose-dark)}.btn-primary{--bs-btn-bg:var(--rose);--bs-btn-border-color:var(--rose);--bs-btn-hover-bg:var(--rose-dark);--bs-btn-hover-border-color:var(--rose-dark);--bs-btn-active-bg:var(--rose-dark);--bs-btn-active-border-color:var(--rose-dark)}.btn-outline-secondary{--bs-btn-color:var(--rose-dark);--bs-btn-border-color:#d7bbc5;--bs-btn-hover-bg:var(--rose-dark);--bs-btn-hover-border-color:var(--rose-dark)}.form-control:focus,.form-select:focus{border-color:#c993a6;box-shadow:0 0 0 .2rem rgba(168,109,129,.15)}.form-label{font-weight:600;font-size:.88rem}.eyebrow{font-size:.73rem;color:var(--rose);font-weight:700;letter-spacing:2.5px}.hero-panel{position:relative;isolation:isolate;overflow:hidden;padding:56px 6%;background:linear-gradient(115deg,#f7e9ec 0%,#f8f0ef 62%,#faebde 100%);border:1px solid #f1e2e4;border-radius:24px}.hero-panel h1{font-size:clamp(2rem,4.1vw,3.5rem);line-height:1.14;max-width:790px;font-family:Georgia,'Times New Roman',serif;font-weight:500;letter-spacing:-1px}.hero-panel h1 em{font-weight:400;color:var(--rose-dark)}.hero-description{color:#6f616b;font-size:1.05rem;max-width:600px}.hero-panel>*:not(.hero-decor){position:relative;z-index:2}.hero-decor{z-index:1;position:absolute;border:2px solid rgba(179,115,137,.13);border-radius:50%;pointer-events:none}.hero-decor-1{width:330px;height:330px;right:-60px;top:-160px}.hero-decor-2{width:240px;height:240px;right:85px;bottom:-155px}.stat-card,.content-card{background:white;border:1px solid var(--border);border-radius:18px;box-shadow:0 5px 28px rgba(86,65,74,.035)}.stat-card{padding:21px 24px;min-height:155px}.stat-icon{display:inline-flex;color:var(--rose);font-size:20px}.stat-value{font-size:2rem;font-weight:700;line-height:1.25;margin:9px 0 5px}.stat-label{font-size:.85rem;color:var(--muted)}.section-title{font-family:Georgia,serif;font-size:1.75rem}.page-heading h1{font-family:Georgia,serif;font-size:2.5rem;letter-spacing:-.5px}.event-table thead th{background:#faf4f6;color:#66545d;text-transform:uppercase;letter-spacing:.5px;font-size:.72rem;font-weight:700;border-bottom:none;white-space:nowrap;padding:15px}.event-table td{padding:16px 15px;border-color:#f2e9ed}.event-link{text-decoration:none;font-weight:700}.event-link:hover{text-decoration:underline}.status-chip{border-radius:30px;padding:6px 10px;font-size:.77rem;font-weight:600;white-space:nowrap}.status-inquiry{background:#fff3dc;color:#91691d}.status-confirmed{background:#e4f4ed;color:#2b7054}.status-done{background:#eff0fa;color:#5b5a8b}.status-cancelled{background:#f9e3e5;color:#9c4557}.form-card{max-width:850px}.details-card{max-width:950px}.detail-label{color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px}.detail-value{font-size:1.05rem;font-weight:550;white-space:pre-wrap}.site-footer{border-top:1px solid var(--border);color:#8b7b83;font-size:.8rem;background:#fff}h1,h2{color:var(--ink)}.validation-summary-errors ul{margin-bottom:0}.field-validation-error{display:block;margin-top:5px}.input-validation-error{border-color:#cb5363!important}@media(max-width:767px){.hero-panel{padding:40px 23px}.stat-card{padding:17px;min-height:140px}.page-heading h1{font-size:2rem}.event-table{min-width:780px}}
 
-html { font-size: 15px; }
-body { background: var(--celebria-cream); }
+/* Допълнения за елементите, които съществуват само в този проект (бързи филтри по тип, празно състояние, бележки). */
+.type-chips{display:flex;flex-wrap:wrap;gap:.5rem}.chip{padding:.35rem .9rem;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--ink);text-decoration:none;font-size:.88rem}.chip:hover{border-color:#d7bbc5;color:var(--rose-dark)}.chip.active{background:var(--rose);border-color:var(--rose);color:#fff}.status-planned{background:#fff3dc;color:#91691d}.event-row-past td{color:var(--muted)}.empty-state{border-style:dashed;padding:2.5rem}.text-pre-line{white-space:pre-line}
+/* Bootstrap 5.1 не поддържа --bs-btn-* променливите, затова цветовете на бутоните се задават изрично. */
+.btn-primary{background-color:var(--rose);border-color:var(--rose);color:#fff}.btn-primary:hover,.btn-primary:focus,.btn-primary:active,.btn-primary.active{background-color:var(--rose-dark)!important;border-color:var(--rose-dark)!important;color:#fff}.btn-primary:focus{box-shadow:0 0 0 .2rem rgba(168,109,129,.3)}.btn-outline-secondary{color:var(--rose-dark);border-color:#d7bbc5}.btn-outline-secondary:hover,.btn-outline-secondary:active{background-color:var(--rose-dark);border-color:var(--rose-dark);color:#fff}.btn-outline-secondary:focus{box-shadow:0 0 0 .2rem rgba(168,109,129,.2)}
 
-.celebria-nav { background: linear-gradient(90deg, var(--celebria-plum-dark), var(--celebria-plum)); }
-.celebria-brand {
-    font-family: "Cormorant Garamond", Georgia, serif;
-    font-size: 1.9rem;
-    font-weight: 700;
-    letter-spacing: .04em;
-}
-.celebria-tagline {
-    font-family: "Inter", sans-serif;
-    font-size: .75rem;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--celebria-rose);
-    margin-left: .5rem;
-}
-
-.page-title {
-    font-family: "Cormorant Garamond", Georgia, serif;
-    font-weight: 700;
-    color: var(--celebria-plum);
-    font-size: 2.2rem;
-}
-
-.btn-celebria {
-    --bs-btn-bg: var(--celebria-plum);
-    --bs-btn-border-color: var(--celebria-plum);
-    --bs-btn-color: #fff;
-    --bs-btn-hover-bg: var(--celebria-plum-dark);
-    --bs-btn-hover-border-color: var(--celebria-plum-dark);
-    --bs-btn-hover-color: #fff;
-    --bs-btn-active-bg: var(--celebria-plum-dark);
-    --bs-btn-active-color: #fff;
-}
-
-.card { border: 1px solid #ece3de; border-radius: .75rem; }
-.filter-card .form-label { font-size: .85rem; font-weight: 500; color: #6b5b66; }
-.form-control:focus, .form-select:focus {
-    border-color: var(--celebria-rose);
-    box-shadow: 0 0 0 .2rem rgba(192, 138, 124, .25);
-}
-
-.type-chips { display: flex; flex-wrap: wrap; gap: .5rem; }
-.chip {
-    padding: .3rem .85rem;
-    border-radius: 999px;
-    border: 1px solid #e3d5ce;
-    background: #fff;
-    color: #4a2545;
-    text-decoration: none;
-    font-size: .9rem;
-}
-.chip:hover { border-color: var(--celebria-rose); }
-.chip.active { background: var(--celebria-plum); border-color: var(--celebria-plum); color: #fff; }
-
-.events-table thead th {
-    font-size: .8rem;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    color: #8a7884;
-    background: #fbf8f6;
-    white-space: nowrap;
-}
-.events-table a { text-decoration: none; }
-
-.details-list dt { font-weight: 500; color: #8a7884; }
-.text-pre-line { white-space: pre-line; }
-.empty-state { border-style: dashed; padding: 2.5rem; }
-
-@media (max-width: 767.98px) {
-    .events-table { font-size: .9rem; }
-    .page-title { font-size: 1.8rem; }
-}
+/* Седмица 2: карта и време в детайлите. */
+.map-frame{display:block;width:100%;height:340px;border:0}.weather-temp{font-family:Georgia,serif;font-size:2.4rem;line-height:1.1}

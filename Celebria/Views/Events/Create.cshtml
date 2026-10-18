@@ -1,17 +1,19 @@
 @model Event
 @{ ViewData["Title"] = "Ново събитие"; }
 
-<h1 class="page-title mb-3">Ново събитие</h1>
-<div class="card shadow-sm">
-    <div class="card-body">
-        <form asp-action="Create" method="post" novalidate>
-            <partial name="_EventForm" model="Model" />
-            <div class="mt-4 d-flex gap-2">
-                <button type="submit" class="btn btn-celebria">Запис</button>
-                <a asp-action="Index" class="btn btn-outline-secondary">Отказ</a>
-            </div>
-        </form>
-    </div>
+<div class="page-heading mb-4">
+    <div class="eyebrow">СЪЗДАВАНЕ</div>
+    <h1>Ново събитие</h1>
+    <p class="text-muted">Попълнете основната информация, за да започнете организацията.</p>
+</div>
+<div class="content-card form-card p-4 p-lg-5">
+    <form asp-action="Create" method="post" novalidate>
+        <partial name="_EventForm" model="Model" />
+        <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top">
+            <button type="submit" class="btn btn-primary px-4">Запази събитието</button>
+            <a asp-action="Index" class="btn btn-outline-secondary px-4">Отказ</a>
+        </div>
+    </form>
 </div>
 
 @section Scripts { <partial name="_ValidationScriptsPartial" /> }

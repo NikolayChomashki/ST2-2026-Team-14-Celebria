@@ -188,4 +188,73 @@ public sealed class DatabaseTests : IDisposable
         Assert.Single(result);
         Assert.Equal("Сватба на Анна и Петър", result[0].Title);
     }
+
+    // ------------------------------------------------------------ UPDATE
+
+    [Fact]
+    public void Update_ChangesStoredValues()
+    {
+        var id = _db.Add(Sample());
+        var ev = _db.GetById(id)!;
+        ev.Title = "Сватба на Мария и Иван (нова дата)";
+        ev.Date = new DateTime(2027, 5, 1);
+        ev.GuestCount = 140;
+        ev.Location = "Комплекс „Старосел“";
+        ev.Status = EventStatus.Confirmed;
+        ev.BudgetEur = null;
+
+        Assert.True(_db.Update(ev));
+
+        var loaded = _db.GetById(id)!;
+        Assert.Equal("Сватба на Мария и Иван (нова дата)", loaded.Title);
+        Assert.Equal(new DateTime(2027, 5, 1), loaded.Date);
+        Assert.Equal(140, loaded.GuestCount);
+        Assert.Equal("Комплекс „Старосел“", loaded.Location);
+        Assert.Equal(EventStatus.Confirmed, loaded.Status);
+        Assert.Null(loaded.BudgetEur);
+        Assert.Equal(1, _db.Count());
+    }
+
+    [Fact]
+    public void Update_RefreshesSearchKey_SoNewTitleIsFound()
+    {
+        var id = _db.Add(Sample());
+        var ev = _db.GetById(id)!;
+        ev.Title = "Юбилей на фирмата";
+
+        _db.Update(ev);
+
+        Assert.Single(_db.Search(new EventFilter { Search = "юбилей" }));
+        Assert.Empty(_db.Search(new EventFilter { Search = "сватба" }));
+    }
+
+    [Fact]
+    public void Update_UnknownId_ReturnsFalse()
+    {
+        var ev = Sample();
+        ev.Id = 9999;
+
+        Assert.False(_db.Update(ev));
+    }
+
+    // ------------------------------------------------------------ DELETE
+
+    [Fact]
+    public void Delete_RemovesOnlyThatRow()
+    {
+        var keep = _db.Add(Sample("Кръщене на София", "baptism"));
+        var remove = _db.Add(Sample());
+
+        Assert.True(_db.Delete(remove));
+
+        Assert.Null(_db.GetById(remove));
+        Assert.NotNull(_db.GetById(keep));
+        Assert.Equal(1, _db.Count());
+    }
+
+    [Fact]
+    public void Delete_UnknownId_ReturnsFalse()
+    {
+        Assert.False(_db.Delete(9999));
+    }
 }

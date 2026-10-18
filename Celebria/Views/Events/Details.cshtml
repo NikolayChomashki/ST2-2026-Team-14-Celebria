@@ -1,44 +1,99 @@
-@model Event
+@model EventDetailsViewModel
 @inject EventTypeCatalog Types
 @{
-    ViewData["Title"] = Model.Title;
-    var type = Types.Find(Model.EventType);
+    var ev = Model.Event;
+    ViewData["Title"] = ev.Title;
 }
 
-<a asp-action="Index" class="small text-decoration-none">&larr; Към всички събития</a>
-<div class="d-flex flex-wrap align-items-center gap-3 mt-2 mb-3">
-    <h1 class="page-title mb-0">@Model.Title</h1>
-    <span class="badge @Model.Status.BadgeClass() fs-6">@Model.Status.DisplayName()</span>
-</div>
-
-<div class="card shadow-sm">
-    <div class="card-body">
-        <dl class="row mb-0 details-list">
-            <dt class="col-sm-3">Тип</dt>
-            <dd class="col-sm-9">@(type?.Icon) @Types.NameOf(Model.EventType)</dd>
-
-            <dt class="col-sm-3">Дата</dt>
-            <dd class="col-sm-9">@(Model.Date?.ToString("dd.MM.yyyy"))</dd>
-
-            <dt class="col-sm-3">Клиент</dt>
-            <dd class="col-sm-9">@Model.ClientName</dd>
-
-            <dt class="col-sm-3">Брой гости</dt>
-            <dd class="col-sm-9">@Model.GuestCount</dd>
-
-            <dt class="col-sm-3">Място</dt>
-            <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.Location) ? "—" : Model.Location)</dd>
-
-            <dt class="col-sm-3">Бюджет</dt>
-            <dd class="col-sm-9">@(Model.BudgetEur is { } b ? $"{b:N0} €" : "—")</dd>
-
-            <dt class="col-sm-3">Бележки</dt>
-            <dd class="col-sm-9 text-pre-line">@(string.IsNullOrWhiteSpace(Model.Notes) ? "—" : Model.Notes)</dd>
-        </dl>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <div class="eyebrow">ДЕТАЙЛИ ЗА СЪБИТИЕ</div>
+        <div class="page-heading d-flex flex-wrap align-items-center gap-3">
+            <h1 class="mb-1">@ev.Title</h1>
+            <span class="status-chip @ev.Status.ChipClass()">@ev.Status.DisplayName()</span>
+        </div>
+        <p class="text-muted mb-0">@Types.NameOf(ev.EventType) · @(ev.Date?.ToString("dd.MM.yyyy"))</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@ev.Id" class="btn btn-primary">Редактирай</a>
+        <a asp-action="Delete" asp-route-id="@ev.Id" class="btn btn-outline-danger">Изтрий</a>
     </div>
 </div>
 
-<div class="mt-3 d-flex gap-2">
-    <a asp-action="Index" asp-route-type="@Model.EventType" class="btn btn-outline-secondary">Още събития от този тип</a>
-    <a asp-action="Create" class="btn btn-celebria">+ Ново събитие</a>
+<div class="content-card p-4 p-lg-5">
+    <div class="row g-4">
+        <div class="col-md-6"><div class="detail-label">Дата</div><div class="detail-value">@(ev.Date?.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("bg-BG")))</div></div>
+        <div class="col-md-6"><div class="detail-label">Тип събитие</div><div class="detail-value">@Types.NameOf(ev.EventType)</div></div>
+        <div class="col-md-6"><div class="detail-label">Клиент</div><div class="detail-value">@ev.ClientName</div></div>
+        <div class="col-md-6"><div class="detail-label">Място</div><div class="detail-value">@(string.IsNullOrWhiteSpace(ev.Location) ? "—" : ev.Location)</div></div>
+        <div class="col-md-6"><div class="detail-label">Брой гости</div><div class="detail-value">@ev.GuestCount</div></div>
+        <div class="col-md-6"><div class="detail-label">Бюджет</div><div class="detail-value">@(ev.BudgetEur is { } b ? $"{b:N0} €" : "—")</div></div>
+        <div class="col-12"><div class="detail-label">Бележки</div><div class="detail-value text-pre-line">@(string.IsNullOrWhiteSpace(ev.Notes) ? "Няма добавени бележки." : ev.Notes)</div></div>
+    </div>
+</div>
+
+<div class="row g-3 mt-2">
+    <div class="col-lg-7">
+        <section class="content-card h-100 overflow-hidden">
+            <div class="p-4 pb-3"><div class="eyebrow">КАРТА</div><h2 class="section-title mb-0">Мястото на събитието</h2></div>
+            @if (Model.MapEmbedUrl is not null)
+            {
+                <iframe src="@Model.MapEmbedUrl"
+                        title="Карта: @Model.MapQuery"
+                        class="map-frame"
+                        loading="lazy"
+                        allowfullscreen
+                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+                <div class="px-4 py-3 small border-top">
+                    <a class="muted-link" href="@Model.MapLinkUrl" target="_blank" rel="noopener">Отвори в Google Maps</a>
+                    <span class="text-muted"> · @Model.MapQuery</span>
+                </div>
+            }
+            else
+            {
+                <p class="px-4 pb-4 text-muted mb-0">Събитието няма въведено място. Добавете го от „Редактирай“, за да се покаже картата.</p>
+            }
+        </section>
+    </div>
+
+    <div class="col-lg-5">
+        <section class="content-card h-100 p-4">
+            <div class="eyebrow">ВРЕМЕТО СЕГА</div>
+            <h2 class="section-title mb-3">На мястото</h2>
+            @if (Model.Weather?.Info is { } w)
+            {
+                <div class="d-flex align-items-center gap-2">
+                    @if (w.IconUrl is not null)
+                    {
+                        <img src="@w.IconUrl" alt="@w.Description" width="72" height="72" />
+                    }
+                    <div>
+                        <div class="weather-temp">@w.Temperature.ToString("F1")&nbsp;&deg;C</div>
+                        <div class="text-capitalize text-muted">@w.Description</div>
+                    </div>
+                </div>
+                <p class="mt-2 mb-3 fw-semibold">@w.Place@(string.IsNullOrEmpty(w.Country) ? "" : ", " + w.Country)</p>
+                <div class="row g-3">
+                    <div class="col-6"><div class="detail-label">Усеща се като</div><div class="detail-value">@w.FeelsLike.ToString("F1") &deg;C</div></div>
+                    <div class="col-6"><div class="detail-label">Влажност</div><div class="detail-value">@w.Humidity %</div></div>
+                    <div class="col-6"><div class="detail-label">Вятър</div><div class="detail-value">@w.WindSpeed.ToString("F1") м/с</div></div>
+                    <div class="col-6"><div class="detail-label">Налягане</div><div class="detail-value">@w.Pressure hPa</div></div>
+                </div>
+                <p class="small text-muted mt-3 mb-0">Текущото време (не прогноза за датата на събитието). Данни: OpenWeather.</p>
+            }
+            else if (Model.Weather?.Error is { } error)
+            {
+                <div class="alert alert-warning mb-0">@error</div>
+            }
+            else
+            {
+                <p class="text-muted mb-0">Няма място, за което да се покаже времето.</p>
+            }
+        </section>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap justify-content-between gap-2 mt-4">
+    <a asp-action="Index" class="btn btn-outline-secondary">← Към всички събития</a>
+    <a asp-action="Index" asp-route-type="@ev.EventType" class="btn btn-outline-secondary">Още събития от този тип</a>
 </div>

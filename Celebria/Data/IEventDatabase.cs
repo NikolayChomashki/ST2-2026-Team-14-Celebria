@@ -19,4 +19,10 @@ public interface IEventDatabase
 
     /// <summary>Общ брой събития в базата.</summary>
     int Count();
+
+    /// <summary>UPDATE – записва промените по съществуващо събитие. Връща false, ако няма събитие с това Id.</summary>
+    bool Update(Event ev);
+
+    /// <summary>DELETE – изтрива събитието. Връща false, ако няма събитие с това Id.</summary>
+    bool Delete(int id);
 }

@@ -6,5 +6,4 @@ namespace Celebria.Models;
 /// </summary>
 /// <param name="Code">Код, който се пази в БД (напр. "wedding").</param>
 /// <param name="Name">Име за показване (напр. "Сватба").</param>
-/// <param name="Icon">Емоджи за визуализация в списъка.</param>
-public sealed record EventType(string Code, string Name, string Icon);
+public sealed record EventType(string Code, string Name);

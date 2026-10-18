@@ -47,13 +47,13 @@ public sealed class EventTypeCatalog
 
         _all = new List<EventType>
         {
-            new("wedding",    "Сватба",           "💍"),
-            new("baptism",    "Кръщене",          "🕊️"),
-            new("birthday",   "Рожден ден",       "🎂"),
-            new("corporate",  "Фирмено събитие",  "🏢"),
-            new("prom",       "Бал / Дипломиране","🎓"),
-            new("conference", "Конференция",      "🎤"),
-            new("other",      "Друго",            "✨")
+            new("wedding",    "Сватба"),
+            new("baptism",    "Кръщене"),
+            new("birthday",   "Рожден ден"),
+            new("corporate",  "Фирмено събитие"),
+            new("prom",       "Бал / Дипломиране"),
+            new("conference", "Конференция"),
+            new("other",      "Друго")
         }.AsReadOnly();
 
         _byCode = _all.ToFrozenDictionary(t => t.Code, StringComparer.OrdinalIgnoreCase);

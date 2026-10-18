@@ -215,6 +215,36 @@ public sealed class Database : IEventDatabase
         cmd.Parameters.AddWithValue("$createdAt", DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
     }
 
+    // ---------------------------------------------------------------- UPDATE и DELETE
+
+    /// <summary>UPDATE – CreatedAt не се променя; SearchKey се пресмята наново от новите стойности.</summary>
+    public bool Update(Event ev)
+    {
+        ArgumentNullException.ThrowIfNull(ev);
+
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = """
+            UPDATE Events
+            SET Title = $title, EventType = $type, Date = $date, GuestCount = $guests,
+                ClientName = $client, Location = $location, BudgetEur = $budget,
+                Status = $status, Notes = $notes, SearchKey = $searchKey
+            WHERE Id = $id;
+            """;
+        Bind(cmd, ev);
+        cmd.Parameters.AddWithValue("$id", ev.Id);
+        return cmd.ExecuteNonQuery() == 1;
+    }
+
+    public bool Delete(int id)
+    {
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "DELETE FROM Events WHERE Id = $id";
+        cmd.Parameters.AddWithValue("$id", id);
+        return cmd.ExecuteNonQuery() == 1;
+    }
+
     // ---------------------------------------------------------------- SELECT
 
     public Event? GetById(int id)

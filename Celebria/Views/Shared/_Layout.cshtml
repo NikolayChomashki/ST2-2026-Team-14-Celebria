@@ -2,47 +2,47 @@
 <html lang="bg">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] – Celebria</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600&display=swap" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] · Celebria</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-dark celebria-nav mb-4">
-            <div class="container">
-                <a class="navbar-brand celebria-brand" asp-controller="Events" asp-action="Index">
-                    Celebria <span class="celebria-tagline d-none d-md-inline">Celebrate Moments</span>
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
-                        aria-controls="nav" aria-expanded="false" aria-label="Меню">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="nav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item"><a class="nav-link" asp-controller="Events" asp-action="Index">Събития</a></li>
-                        <li class="nav-item"><a class="nav-link" asp-controller="Events" asp-action="Create">+ Ново събитие</a></li>
-                    </ul>
-                </div>
+    <header class="site-header">
+        <nav class="navbar navbar-expand-lg navbar-light container py-3">
+            <a class="navbar-brand d-flex align-items-center gap-2" asp-controller="Events" asp-action="Index">
+                <span class="brand-mark">C</span>
+                <span class="brand-stack"><strong>celebria</strong><small>CELEBRATE MOMENTS</small></span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavigation"
+                    aria-controls="mainNavigation" aria-expanded="false" aria-label="Отвори менюто">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNavigation">
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
+                    <li class="nav-item"><a class="nav-link" asp-controller="Events" asp-action="Index">Събития</a></li>
+                    <li class="nav-item"><a class="btn btn-primary btn-sm px-3 rounded-pill" asp-controller="Events" asp-action="Create">+ Ново събитие</a></li>
+                </ul>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-4">
-            @if (TempData["Message"] is string message)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    @message
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Затвори"></button>
-                </div>
-            }
-            @RenderBody()
-        </main>
-    </div>
-    <footer class="border-top text-muted small py-3 text-center">
-        Celebria &middot; ST2 2026 &middot; ASP.NET Core MVC &middot; SQLite
+
+    <main role="main" class="container page-content py-4 py-lg-5">
+        @if (TempData["Message"] is string message)
+        {
+            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                @message
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Затвори"></button>
+            </div>
+        }
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer mt-auto">
+        <div class="container d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 py-3">
+            <span>© 2026 Celebria · ST2 2026</span>
+            <span>ASP.NET Core MVC · SQLite · Singleton</span>
+        </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

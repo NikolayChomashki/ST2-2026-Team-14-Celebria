@@ -1,9 +1,19 @@
+using Celebria.Configuration;
 using Celebria.Data;
 using Celebria.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+
+// Външни API-та (Google Maps / OpenWeather). Ключовете се попълват в appsettings.json (секция ExternalApis).
+builder.Services.Configure<ExternalApisOptions>(builder.Configuration.GetSection(ExternalApisOptions.SectionName));
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<IWeatherService, OpenWeatherService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.openweathermap.org/");
+    client.Timeout = TimeSpan.FromSeconds(8);
+});
 
 // Относителният път в connection string-а се разрешава спрямо папката на проекта
 // (иначе при стартиране от Visual Studio базата се създава в bin/Debug/...).

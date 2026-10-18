@@ -62,6 +62,6 @@ public class EventTypeCatalogTests
         var all = EventTypeCatalog.Instance.All;
 
         Assert.NotEmpty(all);
-        Assert.Throws<NotSupportedException>(() => ((IList<Celebria.Models.EventType>)all).Add(new("x", "X", "")));
+        Assert.Throws<NotSupportedException>(() => ((IList<Celebria.Models.EventType>)all).Add(new("x", "X")));
     }
 }

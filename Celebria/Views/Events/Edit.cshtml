@@ -1,0 +1,20 @@
+@model Event
+@{ ViewData["Title"] = "Редакция"; }
+
+<div class="page-heading mb-4">
+    <div class="eyebrow">РЕДАКТИРАНЕ</div>
+    <h1>Редакция на събитие</h1>
+    <p class="text-muted">Актуализирайте информацията за „@Model.Title“.</p>
+</div>
+<div class="content-card form-card p-4 p-lg-5">
+    <form asp-action="Edit" asp-route-id="@Model.Id" method="post" novalidate>
+        <input asp-for="Id" type="hidden" />
+        <partial name="_EventForm" model="Model" />
+        <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top">
+            <button type="submit" class="btn btn-primary px-4">Запази промените</button>
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary px-4">Отказ</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }
