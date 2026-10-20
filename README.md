@@ -33,14 +33,5 @@
 - [x] **Design patterns:** Repository (`IEventDatabase`), Factory Method (`Open()` и `Map()`), Options (`ExternalApisOptions`), Facade и Strategy (`IWeatherService`), Result object (`WeatherResult`), Cache-Aside и Chain/Fallback (търсене на мястото: „град,BG“ → „град“ → цялото място).
 - [x] Тестове за UPDATE, DELETE и за заявките към картата и времето.
 
-### Ключове за картата и времето
 
-Ключовете не са качени в хранилището. Сложете ги в `Celebria/appsettings.json`, секция `ExternalApis`, или по-добре в **Manage User Secrets** във Visual Studio:
-
-| Настройка | Задължителна? | Как се получава |
-|---|---|---|
-| `OpenWeatherApiKey` | да, за времето | безплатна регистрация на openweathermap.org → „My API keys“ (активира се до около 2 часа) |
-| `GoogleMapsApiKey` | не | Google Cloud Console → Maps Embed API. Без ключ картата пак се показва. |
-
-Без ключ за OpenWeather приложението работи, но вместо времето показва съобщение как да се добави ключът.
 
