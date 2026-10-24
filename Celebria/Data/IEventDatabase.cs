@@ -20,6 +20,9 @@ public interface IEventDatabase
     /// <summary>Общ брой събития в базата.</summary>
     int Count();
 
+    /// <summary>SELECT от търсенето с Gemini – изпълнява само заявка, преведена от JsonQuerySqlTranslator.</summary>
+    IReadOnlyList<Event> ExecuteSqlSelect(Services.SqlSelectCommand command);
+
     /// <summary>UPDATE – записва промените по съществуващо събитие. Връща false, ако няма събитие с това Id.</summary>
     bool Update(Event ev);
 

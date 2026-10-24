@@ -47,8 +47,17 @@
 
     <div class="col-md-4">
         <label asp-for="Status" class="form-label"></label>
-        <select asp-for="Status" asp-items="Html.GetEnumSelectList<EventStatus>()" class="form-select"></select>
-        <span asp-validation-for="Status" class="text-danger small"></span>
+        @if (User.CanChangeStatus())
+        {
+            <select asp-for="Status" asp-items="Html.GetEnumSelectList<EventStatus>()" class="form-select"></select>
+            <span asp-validation-for="Status" class="text-danger small"></span>
+        }
+        else
+        {
+            @* Обикновеният потребител само вижда статуса. Няма поле в формата – сървърът и без това не приема стойност от него. *@
+            <div class="pt-1"><span class="status-chip @Model.Status.ChipClass()">@Model.Status.DisplayName()</span></div>
+            <div class="form-text">Статусът се променя само от администратор.</div>
+        }
     </div>
     <div class="col-12">
         <label asp-for="Notes" class="form-label"></label>

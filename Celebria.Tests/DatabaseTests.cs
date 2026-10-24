@@ -252,6 +252,35 @@ public sealed class DatabaseTests : IDisposable
         Assert.Equal(1, _db.Count());
     }
 
+    // ------------------------------------------------------------ собственик (OwnerId)
+
+    [Fact]
+    public void Add_StoresOwnerId_AndNullForNoOwner()
+    {
+        var owned = Sample();
+        owned.OwnerId = 7;
+
+        Assert.Equal(7, _db.GetById(_db.Add(owned))!.OwnerId);
+        Assert.Null(_db.GetById(_db.Add(Sample("Без собственик")))!.OwnerId);
+    }
+
+    [Fact]
+    public void Update_DoesNotChangeOwner()
+    {
+        var ev = Sample();
+        ev.OwnerId = 7;
+        var id = _db.Add(ev);
+
+        var changed = _db.GetById(id)!;
+        changed.OwnerId = 99;          // опит за „присвояване“ – не трябва да се запише
+        changed.Title = "Ново име";
+        _db.Update(changed);
+
+        var loaded = _db.GetById(id)!;
+        Assert.Equal("Ново име", loaded.Title);
+        Assert.Equal(7, loaded.OwnerId);
+    }
+
     [Fact]
     public void Delete_UnknownId_ReturnsFalse()
     {

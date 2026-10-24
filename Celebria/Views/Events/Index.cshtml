@@ -21,11 +21,61 @@
         <h1 class="mb-1">Събития</h1>
         <p class="text-muted mb-0">
             Показани <strong>@Model.Events.Count</strong> от @Model.TotalCount
-            @if (!f.IsEmpty) { <span>(с активен филтър)</span> }
+            @if (Model.IsAiFiltered) { <span>(търсене с Gemini)</span> }
+            else if (!f.IsEmpty) { <span>(с активен филтър)</span> }
         </p>
     </div>
     <a asp-action="Create" class="btn btn-primary">+ Добави събитие</a>
 </div>
+
+@* Търсене на естествен език: текст → Gemini → JSONQuery → проверка по бял списък → параметризиран SQL. *@
+<section class="content-card ai-card p-3 p-md-4 mb-3">
+    <div class="eyebrow mb-1">ТЪРСЕНЕ С GEMINI</div>
+    <form asp-action="AiSearch" method="get" class="d-flex flex-column flex-md-row gap-2">
+        <input name="q" value="@Model.AiQuery" class="form-control" maxlength="@GeminiQueryService.MaxQueryLength"
+               placeholder="Опишете какво търсите, напр. „потвърдените сватби в Пловдив с над 100 гости“" aria-label="Търсене на естествен език" />
+        <button type="submit" class="btn btn-primary px-4 text-nowrap">Търси</button>
+    </form>
+    <div class="ai-examples small mt-2">
+        <span class="text-muted">Примери:</span>
+        <a asp-action="AiSearch" asp-route-q="предстоящите сватби">предстоящите сватби</a>
+        <a asp-action="AiSearch" asp-route-q="събития в Пловдив с бюджет над 5000 евро">в Пловдив с бюджет над 5000 €</a>
+        <a asp-action="AiSearch" asp-route-q="трите най-големи събития по брой гости">трите най-големи по гости</a>
+    </div>
+
+    @if (Model.AiError is { } aiError)
+    {
+        <div class="alert alert-warning mt-3 mb-0">@aiError</div>
+    }
+    @if (Model.IsAiFiltered)
+    {
+        <div class="ai-result mt-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <span><strong>Разбрано като:</strong> @(Model.AiExplanation ?? "—")</span>
+                <a asp-action="Index" class="muted-link small">Покажи всички събития</a>
+            </div>
+        </div>
+    }
+    @if (Model.JsonQueryFormatted is not null)
+    {
+        <details class="ai-details mt-2">
+            <summary class="small">Как е разбрана заявката (JSONQuery и SQL)</summary>
+            <div class="row g-3 mt-1">
+                <div class="col-lg-6">
+                    <div class="detail-label">JSONQuery от Gemini@(Model.AiModel is null ? "" : $" ({Model.AiModel})")</div>
+                    <pre class="ai-code">@Model.JsonQueryFormatted</pre>
+                </div>
+                @if (Model.GeneratedSql is not null)
+                {
+                    <div class="col-lg-6">
+                        <div class="detail-label">Изпълнен SQL (стойностите са параметри)</div>
+                        <pre class="ai-code">@Model.GeneratedSql</pre>
+                    </div>
+                }
+            </div>
+        </details>
+    }
+</section>
 
 @* Бързи филтри по тип – линкове, които сменят само параметъра type в адреса. *@
 <div class="type-chips mb-3">
@@ -111,6 +161,7 @@
                         <tr class="@(isPast ? "event-row-past" : "")">
                             <td>
                                 <a asp-action="Details" asp-route-id="@ev.Id" class="event-link">@ev.Title</a>
+                                @if (ev.OwnerId is { } owner && owner == User.UserId()) { <span class="own-chip">Ваше</span> }
                                 <div class="small text-muted">@Types.NameOf(ev.EventType)@(string.IsNullOrWhiteSpace(ev.Location) ? "" : " · " + ev.Location)</div>
                             </td>
                             <td class="text-nowrap">@(ev.Date?.ToString("dd.MM.yyyy"))</td>
@@ -119,8 +170,11 @@
                             <td><span class="status-chip @ev.Status.ChipClass()">@ev.Status.DisplayName()</span></td>
                             <td class="text-end text-nowrap">
                                 <a asp-action="Details" asp-route-id="@ev.Id" class="btn btn-outline-secondary btn-sm">Виж</a>
-                                <a asp-action="Edit" asp-route-id="@ev.Id" class="btn btn-outline-secondary btn-sm">Редакция</a>
-                                <a asp-action="Delete" asp-route-id="@ev.Id" class="btn btn-outline-danger btn-sm">Изтрий</a>
+                                @if (User.CanModify(ev))
+                                {
+                                    <a asp-action="Edit" asp-route-id="@ev.Id" class="btn btn-outline-secondary btn-sm">Редакция</a>
+                                    <a asp-action="Delete" asp-route-id="@ev.Id" class="btn btn-outline-danger btn-sm">Изтрий</a>
+                                }
                             </td>
                         </tr>
                     }

@@ -39,14 +39,15 @@ namespace Celebria.Data;
 ///       Така тестовете работят с отделна временна база, без да пипат глобалната инстанция.
 /// ================================================================================
 /// </summary>
-public sealed class Database : IEventDatabase
+public sealed class Database : IEventDatabase, IUserDatabase
 {
     private static readonly object Lock = new();
     private static Database? _instance;
 
     private const string DateFormat = "yyyy-MM-dd";
-    private const string Columns =
-        "Id, Title, EventType, Date, GuestCount, ClientName, Location, BudgetEur, Status, Notes";
+    /// <summary>Колоните, които се четат за Event (и от JsonQuerySqlTranslator). Служебните SearchKey и CreatedAt не са тук.</summary>
+    internal const string EventColumns =
+        "Id, Title, EventType, Date, GuestCount, ClientName, Location, BudgetEur, Status, Notes, OwnerId";
 
     private readonly string _connectionString;
 
@@ -83,10 +84,15 @@ public sealed class Database : IEventDatabase
 
     // ---------------------------------------------------------------- схема и примерни данни
 
+    /// <summary>
+    /// Factory Method за връзка. Вграденият LOWER() в SQLite работи само за латиница (A–Z), затова на всяка
+    /// връзка го заменяме с C# версия, която разбира и кирилица („Пловдив“ ↔ „пловдив“).
+    /// </summary>
     private SqliteConnection Open()
     {
         var connection = new SqliteConnection(_connectionString);
         connection.Open();
+        connection.CreateFunction("LOWER", (string? text) => text?.ToLowerInvariant(), isDeterministic: true);
         return connection;
     }
 
@@ -118,13 +124,29 @@ public sealed class Database : IEventDatabase
                     Status     TEXT    NOT NULL,
                     Notes      TEXT    NULL,
                     SearchKey  TEXT    NOT NULL,
-                    CreatedAt  TEXT    NOT NULL
+                    CreatedAt  TEXT    NOT NULL,
+                    OwnerId    INTEGER NULL
                 );
                 CREATE INDEX IF NOT EXISTS IX_Events_Date ON Events (Date);
                 CREATE INDEX IF NOT EXISTS IX_Events_EventType ON Events (EventType);
+
+                CREATE TABLE IF NOT EXISTS Users (
+                    Id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Username     TEXT    NOT NULL,
+                    UsernameKey  TEXT    NOT NULL UNIQUE,
+                    DisplayName  TEXT    NOT NULL,
+                    PasswordHash TEXT    NOT NULL,
+                    Role         TEXT    NOT NULL DEFAULT 'User',
+                    CreatedAt    TEXT    NOT NULL
+                );
                 """;
             cmd.ExecuteNonQuery();
         }
+
+        // База от по-стара версия няма колона Role – добавяме я (всички стари профили стават „User“).
+        EnsureRoleColumn(connection);
+        // И колоната OwnerId (кой е създал събитието). Старите и примерните събития остават без собственик.
+        EnsureOwnerColumn(connection);
 
         if (seed && CountRows(connection) == 0)
         {
@@ -173,8 +195,8 @@ public sealed class Database : IEventDatabase
     // ---------------------------------------------------------------- INSERT
 
     private const string InsertSql = """
-        INSERT INTO Events (Title, EventType, Date, GuestCount, ClientName, Location, BudgetEur, Status, Notes, SearchKey, CreatedAt)
-        VALUES ($title, $type, $date, $guests, $client, $location, $budget, $status, $notes, $searchKey, $createdAt);
+        INSERT INTO Events (Title, EventType, Date, GuestCount, ClientName, Location, BudgetEur, Status, Notes, SearchKey, CreatedAt, OwnerId)
+        VALUES ($title, $type, $date, $guests, $client, $location, $budget, $status, $notes, $searchKey, $createdAt, $ownerId);
         """;
 
     /// <summary>INSERT – стойностите винаги се подават като параметри (защита от SQL injection).</summary>
@@ -210,6 +232,7 @@ public sealed class Database : IEventDatabase
         cmd.Parameters.AddWithValue("$location", (object?)location ?? DBNull.Value);
         cmd.Parameters.AddWithValue("$budget", (object?)ev.BudgetEur ?? DBNull.Value);
         cmd.Parameters.AddWithValue("$status", ev.Status.ToString());
+        cmd.Parameters.AddWithValue("$ownerId", (object?)ev.OwnerId ?? DBNull.Value);   // UPDATE не го ползва – собственикът не се сменя
         cmd.Parameters.AddWithValue("$notes", string.IsNullOrWhiteSpace(ev.Notes) ? DBNull.Value : ev.Notes.Trim());
         cmd.Parameters.AddWithValue("$searchKey", Normalize($"{title} {client} {location}"));
         cmd.Parameters.AddWithValue("$createdAt", DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
@@ -251,7 +274,7 @@ public sealed class Database : IEventDatabase
     {
         using var connection = Open();
         using var cmd = connection.CreateCommand();
-        cmd.CommandText = $"SELECT {Columns} FROM Events WHERE Id = $id";
+        cmd.CommandText = $"SELECT {EventColumns} FROM Events WHERE Id = $id";
         cmd.Parameters.AddWithValue("$id", id);
         using var reader = cmd.ExecuteReader();
         return reader.Read() ? Map(reader) : null;
@@ -295,13 +318,38 @@ public sealed class Database : IEventDatabase
             cmd.Parameters.AddWithValue("$to", to.ToString(DateFormat, CultureInfo.InvariantCulture));
         }
 
-        var sql = new StringBuilder($"SELECT {Columns} FROM Events");
+        var sql = new StringBuilder($"SELECT {EventColumns} FROM Events");
         if (where.Count > 0)
         {
             sql.Append(" WHERE ").Append(string.Join(" AND ", where));
         }
         sql.Append(" ORDER BY Date, Title");
         cmd.CommandText = sql.ToString();
+
+        using var reader = cmd.ExecuteReader();
+        var result = new List<Event>();
+        while (reader.Read())
+        {
+            result.Add(Map(reader));
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Изпълнява заявка, преведена от <see cref="Services.JsonQuerySqlTranslator"/> (търсене с Gemini).
+    /// <see cref="Services.SqlSelectCommand"/> може да се създаде само от преводача, а стойностите идват само като параметри.
+    /// </summary>
+    public IReadOnlyList<Event> ExecuteSqlSelect(Services.SqlSelectCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = command.Sql;
+        foreach (var (name, value) in command.Parameters)
+        {
+            cmd.Parameters.AddWithValue(name, value);
+        }
 
         using var reader = cmd.ExecuteReader();
         var result = new List<Event>();
@@ -325,6 +373,144 @@ public sealed class Database : IEventDatabase
         return Convert.ToInt32(cmd.ExecuteScalar(), CultureInfo.InvariantCulture);
     }
 
+    // ---------------------------------------------------------------- потребители
+
+    private const string UserColumns = "Id, Username, DisplayName, PasswordHash, Role, CreatedAt";
+
+    private static void EnsureOwnerColumn(SqliteConnection connection)
+    {
+        using var check = connection.CreateCommand();
+        check.CommandText = "SELECT COUNT(*) FROM pragma_table_info('Events') WHERE name = 'OwnerId'";
+        if (Convert.ToInt32(check.ExecuteScalar(), CultureInfo.InvariantCulture) > 0)
+        {
+            return;
+        }
+
+        using var alter = connection.CreateCommand();
+        alter.CommandText = "ALTER TABLE Events ADD COLUMN OwnerId INTEGER NULL";
+        alter.ExecuteNonQuery();
+    }
+
+    private static void EnsureRoleColumn(SqliteConnection connection)
+    {
+        using var check = connection.CreateCommand();
+        check.CommandText = "SELECT COUNT(*) FROM pragma_table_info('Users') WHERE name = 'Role'";
+        if (Convert.ToInt32(check.ExecuteScalar(), CultureInfo.InvariantCulture) > 0)
+        {
+            return;
+        }
+
+        using var alter = connection.CreateCommand();
+        alter.CommandText = "ALTER TABLE Users ADD COLUMN Role TEXT NOT NULL DEFAULT 'User'";
+        alter.ExecuteNonQuery();
+    }
+
+    /// <summary>INSERT – UNIQUE ограничението на UsernameKey пази от два акаунта с едно име.</summary>
+    public int AddUser(User user)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = """
+            INSERT INTO Users (Username, UsernameKey, DisplayName, PasswordHash, Role, CreatedAt)
+            VALUES ($username, $key, $displayName, $hash, $role, $createdAt);
+            SELECT last_insert_rowid();
+            """;
+        cmd.Parameters.AddWithValue("$username", user.Username.Trim());
+        cmd.Parameters.AddWithValue("$key", UsernameKey(user.Username));
+        cmd.Parameters.AddWithValue("$displayName", user.DisplayName.Trim());
+        cmd.Parameters.AddWithValue("$hash", user.PasswordHash);
+        cmd.Parameters.AddWithValue("$role", Roles.Normalize(user.Role));
+        cmd.Parameters.AddWithValue("$createdAt", DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
+        var id = Convert.ToInt32(cmd.ExecuteScalar(), CultureInfo.InvariantCulture);
+        user.Id = id;
+        return id;
+    }
+
+    public User? GetUserByUsername(string username)
+    {
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = $"SELECT {UserColumns} FROM Users WHERE UsernameKey = $key";
+        cmd.Parameters.AddWithValue("$key", UsernameKey(username));
+        using var r = cmd.ExecuteReader();
+        return r.Read() ? MapUser(r) : null;
+    }
+
+    public User? GetUserById(int id)
+    {
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = $"SELECT {UserColumns} FROM Users WHERE Id = $id";
+        cmd.Parameters.AddWithValue("$id", id);
+        using var r = cmd.ExecuteReader();
+        return r.Read() ? MapUser(r) : null;
+    }
+
+    public IReadOnlyList<User> GetAllUsers()
+    {
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = $"SELECT {UserColumns} FROM Users ORDER BY Role, UsernameKey";
+        using var r = cmd.ExecuteReader();
+        var result = new List<User>();
+        while (r.Read())
+        {
+            result.Add(MapUser(r));
+        }
+        return result;
+    }
+
+    public bool UsernameExists(string username)
+    {
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "SELECT COUNT(*) FROM Users WHERE UsernameKey = $key";
+        cmd.Parameters.AddWithValue("$key", UsernameKey(username));
+        return Convert.ToInt32(cmd.ExecuteScalar(), CultureInfo.InvariantCulture) > 0;
+    }
+
+    public bool SetRole(int userId, string role)
+    {
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "UPDATE Users SET Role = $role WHERE Id = $id";
+        cmd.Parameters.AddWithValue("$role", Roles.Normalize(role));
+        cmd.Parameters.AddWithValue("$id", userId);
+        return cmd.ExecuteNonQuery() == 1;
+    }
+
+    public bool DeleteUser(int userId)
+    {
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "DELETE FROM Users WHERE Id = $id";
+        cmd.Parameters.AddWithValue("$id", userId);
+        return cmd.ExecuteNonQuery() == 1;
+    }
+
+    public int CountAdmins()
+    {
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "SELECT COUNT(*) FROM Users WHERE Role = $role";
+        cmd.Parameters.AddWithValue("$role", Roles.Admin);
+        return Convert.ToInt32(cmd.ExecuteScalar(), CultureInfo.InvariantCulture);
+    }
+
+    private static User MapUser(SqliteDataReader r) => new()
+    {
+        Id = r.GetInt32(0),
+        Username = r.GetString(1),
+        DisplayName = r.GetString(2),
+        PasswordHash = r.GetString(3),
+        Role = Roles.Normalize(r.GetString(4)),
+        CreatedAt = DateTime.Parse(r.GetString(5), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind)
+    };
+
+    private static string UsernameKey(string username) => (username ?? string.Empty).Trim().ToLowerInvariant();
+
     // ---------------------------------------------------------------- помощни
 
     private static Event Map(SqliteDataReader r) => new()
@@ -338,7 +524,8 @@ public sealed class Database : IEventDatabase
         Location = r.IsDBNull(6) ? null : r.GetString(6),
         BudgetEur = r.IsDBNull(7) ? null : r.GetInt32(7),
         Status = Enum.TryParse<EventStatus>(r.GetString(8), out var s) ? s : EventStatus.Planned,
-        Notes = r.IsDBNull(9) ? null : r.GetString(9)
+        Notes = r.IsDBNull(9) ? null : r.GetString(9),
+        OwnerId = r.IsDBNull(10) ? null : r.GetInt32(10)
     };
 
     /// <summary>Малки букви и единични интервали – работи и за кирилица (за разлика от NOCASE в SQLite).</summary>

@@ -1,0 +1,68 @@
+@model AdminIndexViewModel
+@{ ViewData["Title"] = "Админ панел"; }
+
+<div class="page-heading mb-4">
+    <div class="eyebrow">АДМИНИСТРАЦИЯ</div>
+    <h1 class="mb-1">Админ панел</h1>
+    <p class="text-muted mb-0">Управление на потребителските профили.</p>
+</div>
+
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        @error
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Затвори"></button>
+    </div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-value">@Model.Users.Count</div><div class="stat-label">Потребители</div></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-value">@Model.AdminCount</div><div class="stat-label">Администратори</div></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-value">@Model.EventCount</div><div class="stat-label">Събития</div></div></div>
+</div>
+
+<div class="content-card p-3 p-md-4">
+    <h2 class="h6 mb-3">Потребители</h2>
+    <div class="table-responsive">
+        <table class="table align-middle event-table mb-0">
+            <thead>
+                <tr>
+                    <th>Име</th>
+                    <th>Потребителско име</th>
+                    <th>Роля</th>
+                    <th>Регистриран</th>
+                    <th class="text-end">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model.Users)
+                {
+                    var isMe = u.Id == Model.CurrentUserId;
+                    <tr>
+                        <td><strong>@u.DisplayName</strong>@if (isMe) { <span class="small text-muted"> (вие)</span> }</td>
+                        <td>@u.Username</td>
+                        <td><span class="status-chip @(u.IsAdmin ? "status-confirmed" : "status-done")">@Roles.DisplayName(u.Role)</span></td>
+                        <td class="text-nowrap">@u.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</td>
+                        <td class="text-end text-nowrap">
+                            @if (!isMe)
+                            {
+                                <form asp-action="SetRole" asp-route-id="@u.Id" method="post" class="d-inline">
+                                    <input type="hidden" name="role" value="@(u.IsAdmin ? Roles.User : Roles.Admin)" />
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">@(u.IsAdmin ? "Направи потребител" : "Направи администратор")</button>
+                                </form>
+                                <form asp-action="DeleteUser" asp-route-id="@u.Id" method="post" class="d-inline"
+                                      data-confirm="Да се изтрие ли профилът „@u.DisplayName“?">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Изтрий</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="small text-muted">—</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

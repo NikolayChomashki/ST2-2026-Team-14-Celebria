@@ -16,6 +16,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Celebria\Celebria.csproj" />
+    <!-- Достъп до MVC, IMemoryCache и логването – за тестовете на контролера и GeminiQueryService. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>

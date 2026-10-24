@@ -1,0 +1,152 @@
+@{
+    ViewData["Title"] = "Начало";
+
+    // Слайдовете на началната страница: снимка, вид събитие и какво прави Celebria за него.
+    var slides = new[]
+    {
+        (Image: "01-svatba", Eyebrow: "СВАТБИ", Title: "Всеки специален момент заслужава идеален план.",
+         Text: "Платформа за агенции, които организират сватби, кръщенета, рождени дни, фирмени партита и конференции.",
+         Alt: "Сватбена маса под арка от бели цветя на открито"),
+        (Image: "02-ceremonia", Eyebrow: "ЦЕРЕМОНИИ НА ОТКРИТО", Title: "Мястото и времето – в детайлите на събитието.",
+         Text: "Карта с мястото и текущото време там, без да отваряте друг сайт.",
+         Alt: "Кръгла арка от розови и бели цветя пред фонтан в парк"),
+        (Image: "03-parti", Eyebrow: "РОЖДЕНИ ДНИ И ПАРТИТА", Title: "От балоните до последния гост.",
+         Text: "Клиент, дата, брой гости и бюджет за всяко събитие – на едно място и винаги под ръка.",
+         Alt: "Украса с балони и надписи Girl и Boy в градина"),
+        (Image: "04-krashtene", Eyebrow: "КРЪЩЕНЕТА", Title: "Нежни детайли, подредени без стрес.",
+         Text: "Следете всяко събитие от първото запитване до „Проведено“ с ясни статуси.",
+         Alt: "Украса за кръщене в синьо и жълто с цветя и балони"),
+        (Image: "05-zala", Eyebrow: "БАНКЕТНИ ЗАЛИ", Title: "Намерете събитие, като просто го опишете.",
+         Text: "Търсене с Gemini: напишете „потвърдените сватби в Пловдив с над 100 гости“ и вижте резултата.",
+         Alt: "Подредена банкетна зала с кръгли маси и бели столове"),
+        (Image: "06-detaili", Eyebrow: "ДЕТАЙЛИТЕ", Title: "Красотата е в детайлите. Организацията – в Celebria.",
+         Text: "Бързи филтри по тип, статус и период, които можете да споделите с линк.",
+         Alt: "Главна маса със свещи и цветна арка"),
+        (Image: "07-otkrito", Eyebrow: "ГРАДИНСКИ ЦЕРЕМОНИИ", Title: "Целият екип вижда едно и също.",
+         Text: "Всеки организатор управлява своите събития, а администраторът – целия екип.",
+         Alt: "Церемония на открито с драперии, цветя и бял подиум"),
+        (Image: "08-masa", Eyebrow: "ГЛАВНИ МАСИ", Title: "Готови ли сте за следващото събитие?",
+         Text: "Влезте или създайте профил и започнете да планирате.",
+         Alt: "Главна маса с цветни аранжировки пред дървен декор")
+    };
+}
+
+@* Слайдшоу (Bootstrap carousel). Снимките са в две големини – браузърът сам избира по-малката на телефон. *@
+<section id="landingCarousel" class="carousel slide carousel-fade landing-carousel mb-4 mb-lg-5"
+         data-bs-ride="carousel" data-bs-interval="5500" data-bs-pause="hover" aria-label="Събития, организирани с Celebria">
+    <div class="carousel-indicators">
+        @for (var i = 0; i < slides.Length; i++)
+        {
+            <button type="button" data-bs-target="#landingCarousel" data-bs-slide-to="@i"
+                    class="@(i == 0 ? "active" : null)" aria-current="@(i == 0 ? "true" : null)"
+                    aria-label="Слайд @(i + 1): @slides[i].Eyebrow.ToLowerInvariant()"></button>
+        }
+    </div>
+
+    <div class="carousel-inner">
+        @for (var i = 0; i < slides.Length; i++)
+        {
+            var s = slides[i];
+            <div class="carousel-item @(i == 0 ? "active" : null)">
+                <img src="~/img/landing/@(s.Image)-1600.jpg"
+                     srcset="@Url.Content($"~/img/landing/{s.Image}-800.jpg") 800w, @Url.Content($"~/img/landing/{s.Image}-1600.jpg") 1600w"
+                     sizes="(max-width: 1400px) 100vw, 1320px"
+                     alt="@s.Alt" class="landing-slide-img" width="1600" height="1200"
+                     loading="@(i == 0 ? "eager" : "lazy")" fetchpriority="@(i == 0 ? "high" : null)" />
+                <div class="landing-caption">
+                    <div class="landing-eyebrow">@s.Eyebrow</div>
+                    @if (i == 0)
+                    {
+                        <h1 class="landing-title">@s.Title</h1>
+                    }
+                    else
+                    {
+                        <h2 class="landing-title">@s.Title</h2>
+                    }
+                    <p class="landing-text">@s.Text</p>
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <a class="btn btn-primary px-4" asp-controller="Account" asp-action="Login">Вход</a>
+                        <a class="btn btn-light px-4" asp-controller="Account" asp-action="Register">Създай профил</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <button class="carousel-control-prev" type="button" data-bs-target="#landingCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Предишен слайд</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#landingCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Следващ слайд</span>
+    </button>
+</section>
+
+<div class="eyebrow">КАКВО МОЖЕТЕ ДА ПРАВИТЕ</div>
+<h2 class="section-title mb-3">Всичко за организацията на едно място</h2>
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-lg-4">
+        <div class="stat-card h-100">
+            <div class="feature-number">01</div>
+            <h3 class="feature-title">Списък със събития</h3>
+            <p class="stat-label mb-0">Добавяне, редакция и изтриване на събития с клиент, дата, място, гости и бюджет.</p>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="stat-card h-100">
+            <div class="feature-number">02</div>
+            <h3 class="feature-title">Търсене с Gemini</h3>
+            <p class="stat-label mb-0">Опишете с думи какво търсите – „предстоящите сватби в Пловдив“ – и вижте резултата.</p>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="stat-card h-100">
+            <div class="feature-number">03</div>
+            <h3 class="feature-title">Бързи филтри</h3>
+            <p class="stat-label mb-0">Филтър по текст, тип, статус и период. Резултатът може да се сподели с линк.</p>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="stat-card h-100">
+            <div class="feature-number">04</div>
+            <h3 class="feature-title">Карта на мястото</h3>
+            <p class="stat-label mb-0">Google Maps показва къде е ресторантът, хотелът или залата.</p>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="stat-card h-100">
+            <div class="feature-number">05</div>
+            <h3 class="feature-title">Времето</h3>
+            <p class="stat-label mb-0">Текущото време на мястото на събитието от OpenWeather.</p>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="stat-card h-100">
+            <div class="feature-number">06</div>
+            <h3 class="feature-title">Работа в екип</h3>
+            <p class="stat-label mb-0">Всеки организатор управлява своите събития, а администраторът – профилите в екипа.</p>
+        </div>
+    </div>
+</div>
+
+<section class="content-card p-4 p-lg-5 text-center">
+    <h2 class="section-title mb-2">Готови ли сте да започнете?</h2>
+    <p class="text-muted mb-4">Влезте в профила си или създайте нов, за да видите събитията.</p>
+    <div class="d-flex flex-wrap justify-content-center gap-2">
+        <a class="btn btn-primary px-4" asp-controller="Account" asp-action="Login">Вход</a>
+        <a class="btn btn-outline-secondary px-4" asp-controller="Account" asp-action="Register">Регистрация</a>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        // Ако потребителят е избрал „по-малко анимации“ в системата, слайдшоуто не се върти само.
+        (function () {
+            var el = document.getElementById('landingCarousel');
+            if (el && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                bootstrap.Carousel.getOrCreateInstance(el, { interval: false, ride: false }).pause();
+            }
+        })();
+    </script>
+}

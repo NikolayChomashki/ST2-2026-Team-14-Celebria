@@ -1,0 +1,10 @@
+@{ ViewData["Title"] = "Нямате достъп"; }
+
+<div class="auth-wrap">
+    <div class="content-card auth-card p-4 p-lg-5 text-center">
+        <div class="eyebrow">ДОСТЪП</div>
+        <h1 class="section-title mb-2">Нямате достъп</h1>
+        <p class="text-muted mb-4">Нямате права за това действие. Обикновеният потребител може да редактира и изтрива само събитията, които сам е създал, а админ панелът е само за администратори.</p>
+        <a asp-controller="Events" asp-action="Index" class="btn btn-primary px-4">Към събитията</a>
+    </div>
+</div>

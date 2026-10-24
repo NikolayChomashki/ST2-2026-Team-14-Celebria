@@ -48,6 +48,12 @@ public class Event
     [Display(Name = "Статус")]
     public EventStatus Status { get; set; } = EventStatus.Planned;
 
+    /// <summary>
+    /// Id на потребителя, създал събитието. Null за примерните и по-старите събития – тях може да
+    /// редактира само администратор. Не идва от формата (не е в [Bind]), а се задава от контролера.
+    /// </summary>
+    public int? OwnerId { get; set; }
+
     [Display(Name = "Бележки")]
     [DataType(DataType.MultilineText)]
     [StringLength(1000, ErrorMessage = "Бележките може да са най-много 1000 символа.")]

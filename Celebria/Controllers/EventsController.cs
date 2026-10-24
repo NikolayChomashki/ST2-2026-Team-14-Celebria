@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 using Celebria.Configuration;
 using Celebria.Data;
@@ -8,22 +10,26 @@ using Celebria.Services;
 namespace Celebria.Controllers;
 
 /// <summary>
-/// Събития: списък с филтър (SELECT), добавяне (INSERT), редакция (UPDATE), изтриване (DELETE)
-/// и детайли с карта (Google Maps) и време (OpenWeather).
+/// Събития: списък с филтър (SELECT), добавяне (INSERT), редакция (UPDATE), изтриване (DELETE),
+/// търсене на естествен език с Gemini (AiSearch) и детайли с карта и време. Достъпно е само след вход ([Authorize]).
 /// Зависимостите идват през конструктора от DI контейнера; контролерът работи само с интерфейси.
 /// </summary>
+[Authorize]
 public class EventsController : Controller
 {
     private readonly IEventDatabase _db;
     private readonly EventTypeCatalog _types;
     private readonly IWeatherService _weather;
+    private readonly IGeminiQueryService _gemini;
     private readonly ExternalApisOptions _apis;
 
-    public EventsController(IEventDatabase db, EventTypeCatalog types, IWeatherService weather, IOptions<ExternalApisOptions> apis)
+    public EventsController(IEventDatabase db, EventTypeCatalog types, IWeatherService weather,
+        IGeminiQueryService gemini, IOptions<ExternalApisOptions> apis)
     {
         _db = db;
         _types = types;
         _weather = weather;
+        _gemini = gemini;
         _apis = apis.Value;
     }
 
@@ -51,6 +57,65 @@ public class EventsController : Controller
         };
         return View(model);
     }
+
+    // GET /Events/AiSearch?q=потвърдените сватби в Пловдив
+    /// <summary>
+    /// Търсене на естествен език: текст → Gemini → JSONQuery → JsonQuerySqlTranslator (бял списък)
+    /// → параметризиран SELECT. Ако нещо се провали, се показват всички събития и съобщение – никога HTTP 500.
+    /// </summary>
+    [HttpGet, EnableRateLimiting("ai")]
+    public async Task<IActionResult> AiSearch(string? q, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(q))
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        var query = q.Trim();
+        var result = await _gemini.GenerateJsonQueryAsync(query, cancellationToken);
+        if (!result.IsSuccess || result.Query is null)
+        {
+            return View(nameof(Index), AllEvents(query, result.Error ?? "Търсенето с Gemini не успя."));
+        }
+
+        try
+        {
+            var sql = JsonQuerySqlTranslator.Translate(result.Query, _types);
+            return View(nameof(Index), new EventIndexViewModel
+            {
+                Events = _db.ExecuteSqlSelect(sql),
+                TotalCount = _db.Count(),
+                AiQuery = query,
+                IsAiFiltered = true,
+                AiExplanation = result.Query.Explanation,
+                JsonQueryFormatted = result.RawJson,
+                GeneratedSql = sql.ReadableSql,
+                AiModel = result.Model
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            // Gemini е върнал поле/оператор/стойност извън белия списък – не изпълняваме нищо.
+            var model = AllEvents(query, $"Заявката не може да се изпълни: {ex.Message}");
+            return View(nameof(Index), new EventIndexViewModel
+            {
+                Events = model.Events,
+                TotalCount = model.TotalCount,
+                AiQuery = query,
+                AiError = model.AiError,
+                JsonQueryFormatted = result.RawJson,
+                AiModel = result.Model
+            });
+        }
+    }
+
+    private EventIndexViewModel AllEvents(string aiQuery, string error) => new()
+    {
+        Events = _db.Search(new EventFilter()),
+        TotalCount = _db.Count(),
+        AiQuery = aiQuery,
+        AiError = error
+    };
 
     /// <summary>Детайли + карта (Google Maps) + текущо време (OpenWeather) за мястото на събитието.</summary>
     public async Task<IActionResult> Details(int id, CancellationToken cancellationToken)
@@ -94,23 +159,39 @@ public class EventsController : Controller
             ModelState.AddModelError(nameof(Event.Date), "Датата на ново събитие не може да е в миналото.");
         }
 
+        // Обикновеният потребител не избира статус – новото му събитие винаги е „Планирано“,
+        // дори някой да изпрати друга стойност с подправена заявка.
+        if (!User.CanChangeStatus())
+        {
+            ev.Status = EventStatus.Planned;
+        }
+
         if (!ModelState.IsValid)
         {
             return View(ev);
         }
 
+        // Собственикът е влезлият потребител – взима се от бисквитката, а не от формата.
+        ev.OwnerId = User.UserId();
         var id = _db.Add(ev);
         TempData["Message"] = $"Събитието „{ev.Title}“ е добавено.";
         return RedirectToAction(nameof(Details), new { id });
     }
 
     [HttpGet]
-    public IActionResult Edit(int id) =>
-        _db.GetById(id) is { } ev ? View(ev) : NotFound();
+    public IActionResult Edit(int id)
+    {
+        if (_db.GetById(id) is not { } ev)
+        {
+            return NotFound();
+        }
+        return User.CanModify(ev) ? View(ev) : Forbid();
+    }
 
     /// <summary>
     /// UPDATE – същата валидация като при Create, но без проверката „дата не в миналото“:
     /// вече проведено събитие трябва да може да се редактира (напр. статус „Проведено“).
+    /// Правата се проверяват спрямо записа в БД, а не спрямо изпратената форма.
     /// </summary>
     [HttpPost, ValidateAntiForgeryToken]
     public IActionResult Edit(int id,
@@ -123,12 +204,28 @@ public class EventsController : Controller
             return BadRequest();
         }
 
+        // Събитието може да е изтрито междувременно (напр. в друг таб).
+        if (_db.GetById(id) is not { } existing)
+        {
+            return NotFound();
+        }
+        if (!User.CanModify(existing))
+        {
+            return Forbid();
+        }
+
+        // Статусът се сменя само от администратор – за останалите остава този от базата.
+        if (!User.CanChangeStatus())
+        {
+            ev.Status = existing.Status;
+        }
+
         if (!ModelState.IsValid)
         {
             return View(ev);
         }
 
-        // Събитието може да е изтрито междувременно (напр. в друг таб).
+        ev.OwnerId = existing.OwnerId;
         if (!_db.Update(ev))
         {
             return NotFound();
@@ -140,15 +237,28 @@ public class EventsController : Controller
 
     /// <summary>Страница за потвърждение – GET не изтрива нищо.</summary>
     [HttpGet]
-    public IActionResult Delete(int id) =>
-        _db.GetById(id) is { } ev ? View(ev) : NotFound();
+    public IActionResult Delete(int id)
+    {
+        if (_db.GetById(id) is not { } ev)
+        {
+            return NotFound();
+        }
+        return User.CanModify(ev) ? View(ev) : Forbid();
+    }
 
     /// <summary>DELETE – само чрез POST с anti-forgery token, за да не може да се изтрие с обикновен линк.</summary>
     [HttpPost, ActionName(nameof(Delete)), ValidateAntiForgeryToken]
     public IActionResult DeleteConfirmed(int id)
     {
-        var ev = _db.GetById(id);
-        if (ev is null || !_db.Delete(id))
+        if (_db.GetById(id) is not { } ev)
+        {
+            return NotFound();
+        }
+        if (!User.CanModify(ev))
+        {
+            return Forbid();
+        }
+        if (!_db.Delete(id))
         {
             return NotFound();
         }

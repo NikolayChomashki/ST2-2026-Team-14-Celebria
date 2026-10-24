@@ -8,3 +8,32 @@ html{min-height:100%;font-size:16px}body{min-height:100vh;display:flex;flex-dire
 
 /* Седмица 2: карта и време в детайлите. */
 .map-frame{display:block;width:100%;height:340px;border:0}.weather-temp{font-family:Georgia,serif;font-size:2.4rem;line-height:1.1}
+
+/* Вход, регистрация и начална страница. */
+.auth-wrap{display:flex;justify-content:center;padding:1rem 0}.auth-card{width:100%;max-width:440px}.feature-number{font-family:Georgia,serif;font-size:1.6rem;color:var(--rose);line-height:1}.feature-title{font-size:1.05rem;font-weight:700;margin:.6rem 0 .4rem}.user-name{font-size:.88rem;color:var(--muted);white-space:nowrap}
+.own-chip{display:inline-block;margin-left:.4rem;padding:1px 8px;border-radius:30px;background:var(--rose-pale);color:var(--rose-dark);font-size:.7rem;font-weight:700;vertical-align:middle}
+
+/* Седмица 3: търсене с Gemini. */
+.ai-card{border-color:#e3cbd4;background:linear-gradient(115deg,#fff 0%,#fdf6f8 100%)}.ai-examples a{display:inline-block;margin:.15rem .35rem 0 0;padding:1px 10px;border:1px solid var(--border);border-radius:30px;background:#fff;color:var(--rose-dark);text-decoration:none}.ai-examples a:hover{border-color:#d7bbc5}.ai-result{padding:.65rem .9rem;border-radius:12px;background:var(--rose-pale);font-size:.92rem}.ai-details summary{cursor:pointer;color:var(--rose-dark)}.ai-code{margin:0;padding:.75rem;border:1px solid var(--border);border-radius:10px;background:#faf6f7;font-size:.78rem;white-space:pre-wrap;word-break:break-word;max-height:320px;overflow:auto}
+
+/* Начална страница: слайдшоу със снимки от събития. */
+.landing-carousel{border-radius:24px;overflow:hidden;background:#2b2228;box-shadow:0 12px 40px rgba(86,65,74,.14)}
+.landing-carousel .carousel-item{ height: clamp(550px, 80vh, 850px)}
+.landing-carousel .carousel-item::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(33,22,29,.82) 0%,rgba(33,22,29,.52) 42%,rgba(33,22,29,.08) 78%)}
+.landing-slide-img{display:block;width:100%;height:100%;object-fit:cover}
+.landing-caption{position:absolute;z-index:2;left:9%;bottom:14%;max-width:560px;padding-right:1rem;color:#fff}
+.landing-eyebrow{font-size:.74rem;font-weight:700;letter-spacing:2.5px;color:#f4d3de}
+.landing-title{margin:.45rem 0 .7rem;font-family:Georgia,'Times New Roman',serif;font-weight:500;font-size:clamp(1.8rem,3.5vw,3rem);line-height:1.14;letter-spacing:-.5px;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.35)}
+.landing-text{margin:0;font-size:1.05rem;color:rgba(255,255,255,.9)}
+.landing-carousel .btn-light{--bs-btn-color:var(--rose-dark);color:var(--rose-dark)}
+.landing-carousel .carousel-control-prev,.landing-carousel .carousel-control-next{z-index:3;width:6%}
+.landing-carousel .carousel-indicators{z-index:3;margin-bottom:1.2rem}
+.landing-carousel .carousel-indicators [data-bs-target]{width:26px;height:4px;border-radius:2px;border:0;margin:0 4px}
+@media(max-width:767px){
+  .landing-carousel{border-radius:18px}
+  .landing-carousel .carousel-item{height:540px}
+  .landing-carousel .carousel-item::after{background:linear-gradient(0deg,rgba(33,22,29,.88) 0%,rgba(33,22,29,.55) 50%,rgba(33,22,29,.1) 85%)}
+  .landing-caption{left:6%;right:6%;bottom:13%;padding-right:0}
+  .landing-text{font-size:.95rem}
+  .landing-carousel .carousel-control-prev,.landing-carousel .carousel-control-next{display:none}
+}
